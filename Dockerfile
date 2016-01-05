@@ -15,11 +15,13 @@ RUN apt-get update && \
 
 COPY supervisord.conf /etc/supervisor/conf.d/nginx-php-fpm.conf
 
-RUN rm /etc/nginx/conf.d/* && \
-	echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN rm /etc/nginx/conf.d/*
 COPY nginx.conf /etc/nginx/conf.d/php-fpm.conf
 
-RUN sed -i -e "s/listen = \/var\/run\/php5-fpm.sock/listen = 127.0.0.1:9000/g" /etc/php5/fpm/pool.d/www.conf
+RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
+	ln -sf /dev/stderr /var/log/nginx/error.log
+
+RUN usermod -aG www-data nginx
 
 EXPOSE 80 443
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/nginx-php-fpm.conf"]
